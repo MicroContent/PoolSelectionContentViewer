@@ -6,9 +6,14 @@
     <script type="application/javascript">
         function init() {
             window.data = getData();
+            setXapiObjectGetter(getXapiObject);
+            registerOnSubmitListener(onSubmit);
         }
         function updateLayout() {
             propagateLayoutChanges();
+        }
+        function sendStatement(stmt) {
+            sendXapiStatement(stmt);
         }
     </script>
 </head>
