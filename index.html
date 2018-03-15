@@ -4,27 +4,64 @@
     <meta charset="UTF-8">
     <title>AbstractContentViewer</title>
     <script type="application/javascript">
+        /** 
+            dont delete! 
+        **/
         function init() {
             window.data = getData();
             setXapiObjectGetter(getXapiObject);
             registerOnSubmitListener(onSubmit);
         }
+        /** 
+            dont delete! 
+        **/
         function updateLayout() {
             propagateLayoutChanges();
         }
+        /** 
+            dont delete! 
+        **/
         function sendStatement(stmt) {
             sendXapiStatement(stmt);
         }
     </script>
+
+    <!-- EDIT css for custom styling 
+         
+        NOTE: you can use Material-css classes for styling 
+        Source: https://fezvrasta.github.io/bootstrap-material-design/docs/4.0/getting-started/introduction/
+    -->
+     <style type ="text/css">
+     </style>
+    <!-- EDIT css for custom styling -->
+
 </head>
-<body>
-    <!-- EXAMPLE CODE - EDIT BELOW TO VIEW DATA -->
+<body>    
+    <!-- EDIT html for card display 
+    
+    for example:
+    <div id="description"></div>
+    <div id="answers"></div>
+    <div id="contextContainer">
+        <button id="showContextHeader" class="btn btn-primary" onclick="showHideContext()"></button>
+        <p id="contextContentContainer"></p>
+    </div> 
+    -->
     <h1 id="title"></h1>
+    <!-- EDIT html for card display  -->
+
+    <!-- EDIT card logic -->
     <script type="application/javascript">
+        function setContent(){}
+        function getXapiObject(){}
+        function onInteraction(){}
+        function onSubmit(){}
+        
         init();
         document.getElementById('title').innerHTML = data.title;
         updateLayout();
     </script>
-    <!-- END OF EXAMPLE CODE -->
+    <!-- EDIT card logic -->
+
 </body>
 </html>
