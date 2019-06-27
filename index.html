@@ -90,14 +90,22 @@
           overlay.addEventListener("mousedown", onMouseDown);
           overlay.addEventListener("mouseup", onMouseUp);
           overlay.addEventListener("mousemove", onMouseMove);
+          overlay.addEventListener("touchstart", onMouseDown);
+          overlay.addEventListener("touchend", onMouseUp);
+          overlay.addEventListener("touchmove", onMouseMove);
         }
         
         function onMouseUp(e){
           if(!isShowingSolution){
-            isDragging = false;
             var outerRect = getBoundingClientRect();
-            var x = (e.clientX - outerRect.left);
-            var y = (e.clientY - outerRect.top);
+            if(e.changedTouches !== undefined && e.changedTouches.length > 0){
+              var x = (e.changedTouches[0].clientX - outerRect.left);
+              var y = (e.changedTouches[0].clientY - outerRect.top);
+            } else {
+              var x = (e.clientX - outerRect.left);
+              var y = (e.clientY - outerRect.top);
+            }
+            isDragging = false;
             if(selectedItem !== undefined){
               selectedItem.style = "";
               var hitbox = pool.getBoundingClientRect();
@@ -127,13 +135,18 @@
         
         function onMouseDown(e){
           if(!isShowingSolution){
+            var outerRect = getBoundingClientRect();
+            if(e.targetTouches !== undefined && e.targetTouches.length > 0){
+              var x = (e.targetTouches[0].clientX - outerRect.left);
+              var y = (e.targetTouches[0].clientY - outerRect.top);
+            } else {
+              var x = (e.clientX - outerRect.left);
+              var y = (e.clientY - outerRect.top);
+            }
             if (isDragging){
               //fix for missed events (e.g. when mouse leaves frame)
               onMouseUp(e);
             }
-            var outerRect = getBoundingClientRect();
-            var x = (e.clientX - outerRect.left);
-            var y = (e.clientY - outerRect.top);
             items.forEach(function(elem){
               var hitbox = elem.getBoundingClientRect();
               if(x < hitbox.right && x > hitbox.left
@@ -159,8 +172,13 @@
         function onMouseMove(e){
           if(isDragging && !isShowingSolution){
             var outerRect = getBoundingClientRect();
-            var x = (e.clientX - outerRect.left);
-            var y = (e.clientY - outerRect.top);
+            if(e.targetTouches !== undefined && e.targetTouches.length > 0){
+              var x = (e.targetTouches[0].clientX - outerRect.left);
+              var y = (e.targetTouches[0].clientY - outerRect.top);
+            } else {
+              var x = (e.clientX - outerRect.left);
+              var y = (e.clientY - outerRect.top);
+            }
             selectedItem.style = "position: absolute; top:" + (y - clickPositionOffset.y - 10) + "px; left:" + (x - clickPositionOffset.x - 10) + "px;";
           }
         }
