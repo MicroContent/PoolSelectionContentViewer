@@ -116,6 +116,7 @@
                   selectedItem.parentNode.removeChild(selectedItem);
                   pool.appendChild(selectedItem);
                   placeHolderForSelected.parentNode.removeChild(placeHolderForSelected);
+                  updateLayout();
                 } else if ((x < hitbox.right && x > hitbox.left
                      && y < hitbox.bottom && y > hitbox.top) 
                      || placeHolderForSelected.parentNode === itemArea){
@@ -126,6 +127,7 @@
                   selectedItem.parentNode.removeChild(selectedItem);
                   itemArea.appendChild(selectedItem);
                   placeHolderForSelected.parentNode.removeChild(placeHolderForSelected);
+                  updateLayout();
               }
             }
             selectedItem = undefined;
