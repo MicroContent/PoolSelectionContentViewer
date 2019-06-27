@@ -2,142 +2,206 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>AbstractContentViewer</title>
+    <title>PoolSelectionViewer</title>
     <script type="application/javascript">
-        /** 
-            dont delete! 
-        **/
         function init() {
             window.data = getData();
             setXapiObjectGetter(getXapiObject);
             registerOnSubmitListener(onSubmit);
         }
-        /** 
-            dont delete! 
-        **/
         function updateLayout() {
             propagateLayoutChanges();
         }
-        /** 
-            dont delete! 
-        **/
         function sendStatement(stmt) {
             sendXapiStatement(stmt);
         }
     </script>
+    <style type ="text/css">
+       #overlay {
+         width: 100%;
+         height: 100%;
+         z-index: 100;
+         display: block;
+         position: absolute;
+         top: 0;
+         left: 0;
+         background: rgba(0,0,0,0);
+       }
+       .item {
+          border: 1px solid black;
+          border-radius: 5px;
+          display: inline-block;
+          text-align: center;
+          min-width: 2em;
+          padding: 0.5em;
+          margin: 10px;
+          cursor: move;
+       }
+       .correct {
+            background-color: rgba(0,255,0,0.6);
+       }
+       .false {
+            background-color: rgba(255,0,0,0.6);
+       }
+       #description {
+            margin-bottom: 10px;
+       }
+       .black {
+           color: black;
+       }
 
-    <!-- EDIT css for custom styling 
-         
-        NOTE: you can use Material-css classes for styling 
-        Source: https://cdn.rawgit.com/FezVrasta/bootstrap-material-design/gh-pages-v3/bootstrap-elements.html
-    -->
-     <style type ="text/css">
-     </style>
-    <!-- EDIT css for custom styling -->
-
+    </style>
 </head>
-<body>    
-    <!-- EDIT html for card display 
-    
-    for example:
+<body>
     <div id="description"></div>
-    <div id="answers"></div>
-    <div id="contextContainer">
-        <button id="showContextHeader" class="btn btn-primary" onclick="showHideContext()"></button>
-        <p id="contextContentContainer"></p>
-    </div> 
-    -->
-    <h1 id="title"></h1>
-    <!-- EDIT html for card display  -->
+    <div id="pool" style="width: 90%; min-height: 4em; border: 1px dashed black; border-radius: 15px; margin: 5%;"></div>
+    <div id="itemArea" style="width: 100%; min-height: 4em;"></div>
+    <div id="overlay"></div>
 
-    <!-- EDIT card logic -->
-    <script type="application/javascript">
-        /** 
-            function setContent() -> display content (write data from dataobject to DOM Elements)
+    <!-- for testing only 
+    <h1>testingfunction</h1><div id="testingfunction"></div> -->
+    
 
-            for example:
-            document.getElementById('title').innerHTML = data.title;
-        **/
-        function setContent(){}
+    <script type="application/javascript"> 
+        function getXapiObject(){
+            return {};
+        }
         
-        /** 
-            function getXapiObject() used to build XAPI-Object
-            for syntax: https://github.com/adlnet/xAPI-Spec/blob/master/xAPI-Data.md
+        function initializeItems(){
+          document.getElementById("description").innerHTML = window.data.question;
+          window.data.items.forEach(function(item){
+            var elem = document.createElement("div");
+            elem.setAttribute("id", item.id);
+            elem.innerHTML=item.text;
+            elem.setAttribute("class", "item");
+            itemArea.appendChild(elem);
+            items.push(elem);
+          });
+          overlay.addEventListener("mousedown", onMouseDown);
+          overlay.addEventListener("mouseup", onMouseUp);
+          overlay.addEventListener("mousemove", onMouseMove);
+        }
+        
+        function onMouseUp(e){
+          if(!isShowingSolution){
+            isDragging = false;
+            var outerRect = getBoundingClientRect();
+            var x = (e.clientX - outerRect.left);
+            var y = (e.clientY - outerRect.top);
+            if(selectedItem !== undefined){
+              selectedItem.style = "";
+              var hitbox = pool.getBoundingClientRect();
+                if(x < hitbox.right && x > hitbox.left
+                    && y < hitbox.bottom && y > hitbox.top &&
+                    placeHolderForSelected.parentNode === itemArea){
+                  // into the pool
+                  selectedItem.parentNode.removeChild(selectedItem);
+                  pool.appendChild(selectedItem);
+                  placeHolderForSelected.parentNode.removeChild(placeHolderForSelected);
+                } else if ((x < hitbox.right && x > hitbox.left
+                     && y < hitbox.bottom && y > hitbox.top) 
+                     || placeHolderForSelected.parentNode === itemArea){
+                  // stay where you are
+                  placeHolderForSelected.parentNode.replaceChild(selectedItem, placeHolderForSelected);
+                } else {
+                  // out of the pool
+                  selectedItem.parentNode.removeChild(selectedItem);
+                  itemArea.appendChild(selectedItem);
+                  placeHolderForSelected.parentNode.removeChild(placeHolderForSelected);
+              }
+            }
+            selectedItem = undefined;
+          }
+        }
+        
+        
+        function onMouseDown(e){
+          if(!isShowingSolution){
+            if (isDragging){
+              //fix for missed events (e.g. when mouse leaves frame)
+              onMouseUp(e);
+            }
+            var outerRect = getBoundingClientRect();
+            var x = (e.clientX - outerRect.left);
+            var y = (e.clientY - outerRect.top);
+            items.forEach(function(elem){
+              var hitbox = elem.getBoundingClientRect();
+              if(x < hitbox.right && x > hitbox.left
+                  && y < hitbox.bottom && y > hitbox.top){
+                    isDragging = true;
+                    selectedItem = elem;
+                    clickPositionOffset.x = x - hitbox.left;
+                    clickPositionOffset.y = y - hitbox.top;
+                  }
+            });
+            if(isDragging){
+              placeHolderForSelected = document.createElement("div");
+              placeHolderForSelected.setAttribute("class", "item");
+              placeHolderForSelected.innerHTML = selectedItem.innerHTML;
+              placeHolderForSelected.style = "visibility: hidden;";
+              selectedItem.parentNode.replaceChild(placeHolderForSelected, selectedItem);
+              document.appendChild(selectedItem);
+              selectedItem.style = "position: absolute; top:" + (y - clickPositionOffset.y -10) + "px; left:" + (x - clickPositionOffset.x -10) + "px;";
+            }
+          }
+        }
+        
+        function onMouseMove(e){
+          if(isDragging && !isShowingSolution){
+            var outerRect = getBoundingClientRect();
+            var x = (e.clientX - outerRect.left);
+            var y = (e.clientY - outerRect.top);
+            selectedItem.style = "position: absolute; top:" + (y - clickPositionOffset.y - 10) + "px; left:" + (x - clickPositionOffset.x - 10) + "px;";
+          }
+        }
 
-            for example:
-            return {
-                "definition": {
-                    "description": {
-                        "en-US": window.data.description
-                    },
-                    "type": "http://adlnet.gov/expapi/activities/cmi.interaction",
-                    "interactionType": "fill-in",
-                    "correctResponsesPattern": 
-                        getAllCombinations(window.data.answers).map(function(e){ return e.join("[,]") }) 
-                    
+            
+        function onSubmit(){
+            if (!isShowingSolution) {
+                isShowingSolution = true;
+                for (var i = 0; i<pool.childNodes.length; i++){
+                  var correct = window.data.items.filter(function(item){ return item.isCorrect && item.id == pool.childNodes[i].id }).length === 1;
+                  pool.childNodes[i].classList.add(correct?"correct":"false");
+                }
+                for (var i = 0; i<itemArea.childNodes.length; i++){
+                  var correct = window.data.items.filter(function(item){ return !item.isCorrect && item.id == itemArea.childNodes[i].id }).length === 1;
+                  itemArea.childNodes[i].classList.add(correct?"correct":"false");
                 }
             }
-        **/
-        function getXapiObject(){}
+            else {
+              isShowingSolution = false;
+              for (var i = 0; i<pool.childNodes.length; i++){
+                pool.childNodes[i].classList.remove("correct");
+                pool.childNodes[i].classList.remove("false");
+              };
+              for (var i = 0; i<itemArea.childNodes.length; i++){
+                itemArea.childNodes[i].classList.remove("correct");
+                itemArea.childNodes[i].classList.remove("false");
+              };
+            }
+        }
 
-        /** 
-            function onInteraction() -> should be called (event listener) everytime user klicks, writes, moves.. something 
-            must send statement on interaction! e.g.:
-            var stmt = {};
-                // actor is set by hosting application
-                stmt.actor = undefined;
-                stmt.verb = {
-                    "id": "http://adlnet.gov/expapi/verbs/interacted",
-                    "display": {
-                        "de-DE": "interagierte",
-                        "en-US": "interacted",
-                        "fr-FR": "a interagi",
-                        "es-ES": "interactuó"
-                    }
-                };
-                stmt.object = getXapiObject();
-                stmt.result = {
-                    response: getCurrentAnswers()
-                };
-                sendStatement(stmt);
-        **/
-        function onInteraction(){}
+        function onInteraction(id){
+        }
 
-        /** 
-            function onSubmit() -> is called when user klicks 'submit'-Button @card
-            has 2 states: display correct answer -> submit icon changes to "revert" -> revert to original state
-            
-            Must send Statement on submit! e.g.:
-            var stmt = {};
-                // actor is set by hosting application
-                stmt.actor = undefined;
-                stmt.verb = {
-                    "id": "http://adlnet.gov/expapi/verbs/answered",
-                    "display": {
-                        "de-DE": "beantwortete",
-                        "en-US": "answered",
-                        "fr-FR": "a répondu",
-                        "es-ES": "contestó"
-                    }
-                };
-                stmt.object = getXapiObject();
-                stmt.result = {
-                    response: getCurrentAnswers(),
-                    success: checkIfCurrentAnswersCorrect()
-                };
-                sendStatement(stmt);
-        **/
-        function onSubmit(){}
-        
-        /** 
-            function init() -> dont delete! used for initialization.
-        **/
+        function showHideContext(){
+        }
+
+
         init();
-
-        setContent();
-        updateLayout();
+        
+        var isDragging = false;
+        var showHint = false;
+        var isShowingSolution = false;
+        var overlay = document.getElementById("overlay");
+        var itemArea = document.getElementById("itemArea");
+        var pool = document.getElementById("pool");
+        var items = [];
+        var selectedItem = undefined;
+        var placeHolderForSelected = undefined;
+        var clickPositionOffset = {x: 0, y: 0};
+        initializeItems();
     </script>
-    <!-- EDIT card logic -->
-
 </body>
+
 </html>
