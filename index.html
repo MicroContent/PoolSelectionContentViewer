@@ -180,6 +180,7 @@
               var y = (e.clientY - outerRect.top);
             }
             selectedItem.style = "position: absolute; top:" + (y - clickPositionOffset.y - 10) + "px; left:" + (x - clickPositionOffset.x - 10) + "px;";
+            e.preventDefault();
           }
         }
 
